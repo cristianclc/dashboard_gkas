@@ -17,7 +17,7 @@ def preparar_datos(semana=None):
     df_gk = transformar_notas_gk(datos["df_gk"])
     df_as = transformar_notas_as(datos["df_as"])
     df_ret = transformar_retirados(datos["df_ret"])
-    df_k2k = transformar_k2k(datos["df_k2k"])
+    df_k2k = transformar_k2k(datos["df_k2k"], df_gk, df_as)
 
     resultado = {
         "df": df,

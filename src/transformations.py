@@ -1,3 +1,5 @@
+import unicodedata
+
 import numpy as np
 import pandas as pd
 
@@ -187,6 +189,46 @@ def transformar_notas_gk(df_gk):  # ============================================
         ],
         right=False
     )
+    
+        # Desempeño Periodo 3
+
+    df_gk["Desempeño Periodo 3"] = pd.cut(
+        df_gk["C3 Definitiva (1-5)"],
+        bins=[
+            -float("inf"),
+            3,
+            4,
+            4.5,
+            float("inf")
+        ],
+        labels=[
+            "BAJO",
+            "BÁSICO",
+            "ALTO",
+            "SUPERIOR"
+        ],
+        right=False
+    )
+    
+    # Desempeño Periodo 4
+
+    df_gk["Desempeño Periodo 4"] = pd.cut(
+        df_gk["C4 Definitiva (1-5)"],
+        bins=[
+            -float("inf"),
+            3,
+            4,
+            4.5,
+            float("inf")
+        ],
+        labels=[
+            "BAJO",
+            "BÁSICO",
+            "ALTO",
+            "SUPERIOR"
+        ],
+        right=False
+    )
 
     # Redondeo al final: los desempeños se calculan con el valor sin redondear
     columnas_calculadas = [
@@ -308,6 +350,46 @@ def transformar_notas_as(df_as):  # ============================================
         right=False
     )
 
+    # DESEMPEÑO PERIODO 3
+
+    df_as["Desempeño Periodo 3"] = pd.cut(
+        df_as["C3 Definitiva (1-5)"],
+        bins=[
+            -float("inf"),
+            3,
+            4,
+            4.5,
+            float("inf")
+        ],
+        labels=[
+            "BAJO",
+            "BÁSICO",
+            "ALTO",
+            "SUPERIOR"
+        ],
+        right=False
+    )
+
+    # DESEMPEÑO PERIODO 4
+
+    df_as["Desempeño Periodo 4"] = pd.cut(
+        df_as["C4 Definitiva (1-5)"],
+        bins=[
+            -float("inf"),
+            3,
+            4,
+            4.5,
+            float("inf")
+        ],
+        labels=[
+            "BAJO",
+            "BÁSICO",
+            "ALTO",
+            "SUPERIOR"
+        ],
+        right=False
+    )
+
     # Redondeo al final: los desempeños se calculan con el valor sin redondear
     columnas_calculadas = [
         f"C{n} Definitiva ({escala})"
@@ -319,7 +401,7 @@ def transformar_notas_as(df_as):  # ============================================
 
     return df_as
 
-def transformar_k2k(df_k2k): # ======================================================= 06 NIÑO A NIÑO K2K
+def transformar_k2k(df_k2k, df_gk, df_as): # ======================================================= 06 NIÑO A NIÑO K2K
 
     df_k2k = df_k2k.copy()
 
@@ -425,10 +507,153 @@ def transformar_k2k(df_k2k): # =================================================
         "Total horas asistidas por el estudiante",
         "% de horas asistidas por estudiante vs horas efectivas de clase",
         "% Asistencia Periodo 1",
-        "% Asistencia Periodo 2"
+        "% Asistencia Periodo 2",
+        "% Asistencia Periodo 3",
+        "% Asistencia Periodo 4"
     ]
 
     df_k2k[columnas_calculadas] = df_k2k[columnas_calculadas].round(2)
+
+    # =========================
+    # UNIR DESEMPEÑO (NOTAS GK + AS) Y CORRELACIÓN CON LA ASISTENCIA
+    # =========================
+
+    periodos = [1, 2, 3, 4]
+
+    columnas_desempeno = [
+        f"Desempeño Periodo {n}"
+        for n in periodos
+        if f"Desempeño Periodo {n}" in df_gk.columns
+        or f"Desempeño Periodo {n}" in df_as.columns
+    ]
+
+    notas = pd.concat(
+        [
+            df_gk[["Cod Estud", "Nombre Est"] + [c for c in columnas_desempeno if c in df_gk.columns]],
+            df_as[["Cod Estud", "Nombre Est"] + [c for c in columnas_desempeno if c in df_as.columns]]
+        ],
+        ignore_index=True
+    )
+
+    notas[columnas_desempeno] = notas[columnas_desempeno].astype("object")
+
+    def codigo(serie):
+        return (
+            serie.astype("string")
+            .str.strip()
+            .str.replace(r"\.0$", "", regex=True)
+        )
+
+    def nombre(serie):
+        # Sin tildes ni signos y en mayúsculas
+        def limpiar(texto):
+            if pd.isna(texto):
+                return pd.NA
+            texto = unicodedata.normalize("NFKD", str(texto))
+            texto = "".join(c for c in texto if not unicodedata.combining(c))
+            texto = "".join(c if c.isalnum() else " " for c in texto)
+            return " ".join(texto.upper().split())
+
+        return serie.map(limpiar).astype("string")
+
+    notas["_codigo"] = codigo(notas["Cod Estud"])
+    notas["_nombre"] = nombre(notas["Nombre Est"])
+
+    # Filas idénticas (mismo código, nombre y desempeños) cuentan como una sola
+    notas = notas.dropna(subset=["_codigo"]).drop_duplicates(
+        subset=["_codigo", "_nombre"] + columnas_desempeno
+    )
+
+    repetidos = set(notas.loc[notas["_codigo"].duplicated(keep=False), "_codigo"])
+
+    df_k2k["_codigo"] = codigo(df_k2k["tf_codigo_estudiante"])
+
+    # Códigos únicos: se cruzan solo por código
+    df_k2k = df_k2k.merge(
+        notas.loc[~notas["_codigo"].isin(repetidos), ["_codigo"] + columnas_desempeno],
+        on="_codigo",
+        how="left",
+        validate="many_to_one"
+    )
+
+    # Códigos repetidos: se elige la fila cuyo nombre coincide.
+    # K2K viene como "Nombre1 Nombre2 Apellido1 Apellido2" y las notas como
+    # "Apellido1 Apellido2 Nombre1 Nombre2" (a veces con partes faltantes),
+    # pero siempre existen el 1er nombre y el 1er apellido. Entonces:
+    #   - el 1er nombre de K2K (1ª palabra) debe estar en el nombre de las notas
+    #   - el 1er apellido de las notas (1ª palabra) debe estar en el de K2K
+    # Entre las filas que cumplen, gana la que comparte más palabras (si hay empate, queda vacío).
+    candidatos = {
+        cod: grupo
+        for cod, grupo in notas[notas["_codigo"].isin(repetidos)].groupby("_codigo")
+    }
+
+    nombres_k2k = nombre(df_k2k["tf_nombre_estudiante"])
+
+    for pos in df_k2k.index[df_k2k["_codigo"].isin(repetidos)]:
+
+        if pd.isna(nombres_k2k[pos]) or not nombres_k2k[pos]:
+            continue
+
+        palabras_k2k = nombres_k2k[pos].split()
+        puntajes = {}
+
+        for fila, nombre_notas in candidatos[df_k2k.at[pos, "_codigo"]]["_nombre"].items():
+
+            if pd.isna(nombre_notas) or not nombre_notas:
+                continue
+
+            palabras_notas = nombre_notas.split()
+
+            if palabras_k2k[0] in palabras_notas and palabras_notas[0] in palabras_k2k:
+                puntajes[fila] = len(set(palabras_k2k) & set(palabras_notas))
+
+        if not puntajes:
+            continue
+
+        mejor = max(puntajes.values())
+        ganadores = [fila for fila, p in puntajes.items() if p == mejor]
+
+        if len(ganadores) == 1:
+            df_k2k.loc[pos, columnas_desempeno] = (
+                notas.loc[ganadores[0], columnas_desempeno].values
+            )
+
+    df_k2k = df_k2k.drop(columns="_codigo")
+
+    # Correlación desempeño vs asistencia (misma regla del Excel)
+    columnas_periodos = []
+
+    for n in periodos:
+
+        asistencia = f"% Asistencia Periodo {n}"
+        desempeno = f"Desempeño Periodo {n}"
+        correlacion = f"Correlación desempeño vs asistencia Periodo {n}"
+
+        if asistencia not in df_k2k.columns or desempeno not in df_k2k.columns:
+            continue
+
+        bajo = df_k2k[desempeno] == "BAJO"
+
+        df_k2k[correlacion] = np.select(
+            [
+                bajo & (df_k2k[asistencia] < 50),
+                bajo & (df_k2k[asistencia] >= 50)
+            ],
+            [
+                "DESEMPEÑO BAJO POR ASISTENCIA",
+                "DESEMPEÑO BAJO POR NOTA"
+            ],
+            default="N/A"
+        )
+
+        columnas_periodos += [asistencia, desempeno, correlacion]
+
+    # Dejar juntas las 3 columnas de cada periodo
+    df_k2k = df_k2k[
+        [c for c in df_k2k.columns if c not in columnas_periodos]
+        + columnas_periodos
+    ]
 
     return df_k2k
 
