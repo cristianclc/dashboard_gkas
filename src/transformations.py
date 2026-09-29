@@ -74,6 +74,8 @@ def transformar_aula_aula(df): # ===============================================
         np.nan
     )
 
+    df["Total horas"] = df["Total horas"].round(2)
+
     return df
 
 def transformar_notas_gk(df_gk):  # ======================================================= 03 NOTAS GK
@@ -186,6 +188,15 @@ def transformar_notas_gk(df_gk):  # ============================================
         right=False
     )
 
+    # Redondeo al final: los desempeños se calculan con el valor sin redondear
+    columnas_calculadas = [
+        f"C{n} Definitiva ({escala})"
+        for n in range(1, 5)
+        for escala in ("1-5", "1-100")
+    ] + ["Definitiva Promedio C1 - C2"]
+
+    df_gk[columnas_calculadas] = df_gk[columnas_calculadas].round(2)
+
     return df_gk
 
 def transformar_notas_as(df_as):  # ======================================================= 04 NOTAS AS
@@ -297,6 +308,15 @@ def transformar_notas_as(df_as):  # ============================================
         right=False
     )
 
+    # Redondeo al final: los desempeños se calculan con el valor sin redondear
+    columnas_calculadas = [
+        f"C{n} Definitiva ({escala})"
+        for n in range(1, 5)
+        for escala in ("1-5", "1-100")
+    ] + ["Definitiva Promedio C1 - C2"]
+
+    df_as[columnas_calculadas] = df_as[columnas_calculadas].round(2)
+
     return df_as
 
 def transformar_k2k(df_k2k): # ======================================================= 06 NIÑO A NIÑO K2K
@@ -383,9 +403,32 @@ def transformar_k2k(df_k2k): # =================================================
     # ASISTENCIA PERIODO 3
     # =========================
 
+    df_k2k["% Asistencia Periodo 3"] = (
+            df_k2k.loc[:, "tf_sem16_cha":"tf_sem25_cha"]
+            .sum(axis=1)
+            / 20
+            * 100
+        )
+
     # =========================
     # ASISTENCIA PERIODO 4
     # =========================
+
+    df_k2k["% Asistencia Periodo 4"] = (
+                df_k2k.loc[:, "tf_sem26_cha":"tf_sem32_cha"]
+                .sum(axis=1)
+                / 20
+                * 100
+            )
+
+    columnas_calculadas = [
+        "Total horas asistidas por el estudiante",
+        "% de horas asistidas por estudiante vs horas efectivas de clase",
+        "% Asistencia Periodo 1",
+        "% Asistencia Periodo 2"
+    ]
+
+    df_k2k[columnas_calculadas] = df_k2k[columnas_calculadas].round(2)
 
     return df_k2k
 

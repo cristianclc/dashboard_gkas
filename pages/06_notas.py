@@ -1,7 +1,10 @@
-import streamlit as st
-from src.components import mostrar_tabla_interactiva, mostrar_reporte_alertas, obtener_aulas_filtradas
+import math
+import re
 
-from src.dashboard import (crear_notas_por_aula)
+import pandas as pd
+import streamlit as st
+from src.components import mostrar_tabla_interactiva, crear_texto_notas
+from src.dashboard import crear_notas_por_aula
 
 
 ACTIVIDADES_GK = [
@@ -38,6 +41,9 @@ ACTIVIDADES_AS = [
     "C4 Class Performance 10%"
 ]
 
+PERIODOS = ["C1", "C2", "C3", "C4"]
+
+
 st.title("Seguimiento de Notas")
 
 if "datos" not in st.session_state:
@@ -67,7 +73,7 @@ else:
     
     #estudiantes con nota por aula GK ==================================================
     
-    mostrar_tabla_interactiva(
+    respuesta_gk = mostrar_tabla_interactiva(
         tabla_gk,
         mostrar_total=True,
         #contar_ceros=True,
@@ -140,7 +146,7 @@ else:
     
     #AS
     
-    mostrar_tabla_interactiva(
+    respuesta_as = mostrar_tabla_interactiva(
         tabla_as,
         mostrar_total=True,
         #contar_ceros=True,
@@ -209,4 +215,33 @@ else:
             }
         ],
         altura_maxima=700
+    )
+
+    #texto final ==================================================
+
+    datos_gk = respuesta_gk.data if respuesta_gk.data is not None else tabla_gk
+    datos_as = respuesta_as.data if respuesta_as.data is not None else tabla_as
+
+    st.subheader("Texto para copiar y pegar")
+
+    periodo = st.selectbox(
+        "Periodo",
+        PERIODOS,
+        index=PERIODOS.index("C3"),
+        key="periodo_texto_notas"
+    )
+
+    texto_notas = (
+        "- Notas 03_04:\n\n"
+        "GK:\n"
+        + crear_texto_notas(datos_gk, ACTIVIDADES_GK, periodo)
+        + "\n\nAS:\n"
+        + crear_texto_notas(datos_as, ACTIVIDADES_AS, periodo)
+    )
+
+    st.text_area(
+        "Notas 03_04",
+        value=texto_notas,
+        height=300,
+        label_visibility="collapsed"
     )

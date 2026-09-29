@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, StAggridTheme
+import re
+import math
 
 tema = StAggridTheme(base="quartz").withParams(
     autoHeightMinBodyHeight=0,
@@ -654,9 +656,9 @@ def mostrar_tabla_interactiva(
         onGridSizeChanged=JsCode("function(p){ p.api.sizeColumnsToFit(); }"),
         domLayout=dom_layout,
         suppressMenuHide=False,
-        onFirstDataRendered=actualizar_total,
-        onFilterChanged=actualizar_total,
-        onSortChanged=actualizar_total
+        onFirstDataRendered=actualizar_total if mostrar_total else None,
+        onFilterChanged=actualizar_total if mostrar_total else None,
+        onSortChanged=actualizar_total if mostrar_total else None
     )
 
 
@@ -1691,4 +1693,52 @@ def mostrar_tabla_reposiciones(
     )
 
     return respuesta
-#
+
+#TEXTO NOTAS
+
+def crear_texto_notas(tabla, actividades, periodo):
+    """
+    Una línea por actividad del periodo, con el % de aulas que ya
+    subieron notas (aulas con la celda en 0 = sin notas).
+    Si faltan 10 aulas o menos, agrega el tutor de cada una.
+    """
+
+    tabla = pd.DataFrame(tabla)
+    lineas = []
+
+    for actividad in actividades:
+
+        if not actividad.startswith(f"{periodo} "):
+            continue
+
+        # "C3 Oral Activity1 30%" -> "C3 Oral Activity 1"
+        nombre = re.sub(r"\s*\d+%$", "", actividad)
+        nombre = re.sub(r"(?<=[a-z])(\d)", r" \1", nombre)
+
+        if tabla.empty:
+            lineas.append(f"{nombre} (sin aulas)")
+            continue
+
+        valores = pd.to_numeric(tabla[actividad], errors="coerce")
+        sin_nota = int((valores == 0).sum())
+
+        # Hacia abajo: solo dice 100% si no falta ninguna aula
+        porcentaje = math.floor((len(tabla) - sin_nota) / len(tabla) * 100)
+
+        linea = f"{nombre} ({porcentaje}%)"
+
+        if 0 < sin_nota <= 10:
+            tutores = (
+                tabla.loc[valores == 0, "Nombre Tutor"]
+                .dropna()
+                .astype(str)
+                .drop_duplicates()
+                .tolist()
+            )
+            linea += f" - Tutores faltantes: {', '.join(tutores)}"
+
+        lineas.append(linea)
+
+    return "\n".join(lineas)
+
+#COSAS

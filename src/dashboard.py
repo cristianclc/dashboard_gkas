@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
+
 #TABULACION POR AULA =====================================================================
 
 #aprovechamiento de clases
@@ -1758,5 +1759,3 @@ def crear_notas_por_aula(df, actividades):
     })
 
     return tabla
-
-#COSAS

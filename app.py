@@ -3,6 +3,7 @@ import streamlit as st
 from src.data import preparar_datos
 from src.metabase import MetabaseError
 from src.dashboard import crear_tabla_aprovechamiento
+from src.components import mostrar_tabla_interactiva
 
 st.set_page_config(page_title="Dashboard", layout="wide")
 st.title("Dashboard de seguimiento GKAS")
@@ -45,8 +46,32 @@ if "datos" in st.session_state:
             )
 
     st.subheader("DataFrames transformados")
-    for clave in ("df", "df_gk", "df_as", "df_ret", "df_k2k"):
-        st.write(nombres[clave])
-        st.dataframe(datos[clave], use_container_width=True)
+
+    claves_pestanas = [
+        clave
+        for clave in nombres
+        if datos.get(clave) is not None and not datos[clave].empty
+    ]
+
+    pestanas = st.tabs([nombres[clave] for clave in claves_pestanas])
+
+    for clave, pestana in zip(claves_pestanas, pestanas):
+        with pestana:
+            df_pestana = datos[clave].copy()
+
+            # Las columnas categóricas (ej. Desempeño) dejan la tabla en blanco
+            for columna in df_pestana.select_dtypes("category").columns:
+                df_pestana[columna] = df_pestana[columna].astype("object")
+
+            st.caption(
+                f"{df_pestana.shape[0]:,} filas × "
+                f"{df_pestana.shape[1]:,} columnas"
+            )
+
+            mostrar_tabla_interactiva(
+                df_pestana,
+                mostrar_total=False,
+                altura_maxima=800
+            )
 
     st.session_state["tabla_aprovechamiento"] = crear_tabla_aprovechamiento(datos["df"])
