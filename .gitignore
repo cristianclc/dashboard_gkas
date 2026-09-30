@@ -1,7 +1,6 @@
 .env
 .venv/
-datos/*
-!datos/plantilla.xlsx
+datos/
 pruebas/
 __pycache__/
 *.py[cod]

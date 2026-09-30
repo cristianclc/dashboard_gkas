@@ -8,6 +8,10 @@ Uso (desde la raíz del proyecto):
 import argparse
 import sys
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import pandas as pd
 
@@ -19,7 +23,7 @@ from src.db import (  # noqa: E402
 )
 
 RUTA_EXCEL = Path(__file__).resolve().parents[1] / "datos" / "reposiciones.xlsx"
-
+url = os.getenv("DATABASE_URL", "sqlite:///datos/reposiciones.db")
 
 def texto(serie):
     """Texto limpio; 401.0 -> '401'."""
