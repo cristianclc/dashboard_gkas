@@ -5,7 +5,7 @@ from pathlib import Path
 from src.dashboard import (crear_tabla_civicos, crear_tabla_resultado, crear_tabla_civicos, crear_tabla_reposiciones, crear_asistencias_pendientes_gk, crear_asistencias_pendientes_as)
 from src.components import mostrar_tabla_interactiva
 
-from src.db import cargar_reposiciones
+from src.sheets import cargar_reposiciones
 
 st.title("Detalle resumen - PPT")
 
@@ -206,4 +206,3 @@ else:
                                         }
                         ]
         )
-
