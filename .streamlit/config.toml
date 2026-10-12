@@ -6,6 +6,7 @@ backgroundColor = "#F4F8FB"
 secondaryBackgroundColor = "#E4EEF5"
 textColor = "#12324A"
 font = "sans serif"
+baseFontSize = 11
 
 [theme.sidebar]
 backgroundColor = "#0B3C5D"

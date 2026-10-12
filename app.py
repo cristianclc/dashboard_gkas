@@ -20,6 +20,7 @@ paginas = {
         st.Page("pages/05_aulas.py", title="Aulas", icon=":material/meeting_room:", url_path="aulas"),
         st.Page("pages/06_notas.py", title="Notas", icon=":material/grading:", url_path="notas"),
         st.Page("pages/07_reposiciones.py", title="Reposiciones", icon=":material/event_repeat:", url_path="reposiciones"),
+        st.Page("pages/08_seguimiento.py", title="Seguimiento", icon=":material/trending_up:", url_path="seguimiento"),
     ],
 }
 

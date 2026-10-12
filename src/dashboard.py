@@ -370,9 +370,10 @@ def crear_tabla_razones_agrupadas(df):
     grados = [4, 5, 9, 10]
 
     tipificaciones = [
-        "RAZONES ACADÉMICAS IED",
-        "RAZONES ADMINISTRATIVAS UN",
-        "RAZONES DE LA IED"
+        "ACTIVIDADES INSTITUCIONALES",
+        "FESTIVO",
+        "MOTIVOS ADMINISTRATIVOS",
+        "OTROS MOTIVOS"
     ]
 
     # ============================================================
@@ -420,7 +421,7 @@ def crear_tabla_razones_agrupadas(df):
 
     tabla_final = pd.DataFrame(
         index=[
-            "Si hubo clase + Reposiciones",
+            "SI HUBO CLASE + REPOSICIONES",
             *tipificaciones
         ],
         columns=grados
@@ -430,7 +431,7 @@ def crear_tabla_razones_agrupadas(df):
     for grado in grados:
 
         tabla_final.loc[
-            "Si hubo clase + Reposiciones",
+            "SI HUBO CLASE + REPOSICIONES",
             grado
         ] = horas_disponibles.get(grado, 0)
 

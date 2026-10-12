@@ -251,7 +251,8 @@ def mostrar_tabla_interactiva(
     mostrar_total=True,
     grupos_columnas=None,
     contar_ceros=False,
-    altura_maxima=None
+    altura_maxima=None,
+    columnas_porcentaje=None
 ):
 
     """
@@ -630,6 +631,32 @@ def mostrar_tabla_interactiva(
             str(columna),
             width=anchos_columnas.get(str(columna), 100)
         )
+
+    # Columnas con valor 0-1 que se muestran como % (siguen siendo números)
+    for col in (columnas_porcentaje or []):
+        if col in tabla.columns:
+            gb.configure_column(
+                col,
+                type=["numericColumn", "numberColumnFilter"],
+                # El filtro compara contra 60 (no 0.6), igual que lo que se ve
+                filterValueGetter=JsCode(
+                    """
+                    function(p) {
+                        const v = p.data ? p.data[p.colDef.field] : null;
+                        if (v === null || v === undefined || v === "") return null;
+                        return Math.round(v * 1000) / 10;
+                    }
+                    """
+                ),
+                valueFormatter=JsCode(
+                    """
+                    function(p) {
+                        if (p.value === null || p.value === undefined || p.value === "") return "";
+                        return Math.round(p.value * 1000) / 10 + "%";
+                    }
+                    """
+                )
+            )
         
     # Menú de columnas:
     # permite ocultar columnas, ordenar, etc.
