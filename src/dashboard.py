@@ -737,7 +737,7 @@ def crear_tabla_resultado(df, df_k2k, df_ret):
     horas_efectivas_reposiciones = (
         tabla_final
         .loc[
-            tabla_final["Tipificación"] == "Si hubo clase + Reposiciones",
+            tabla_final["Tipificación"] == "SI HUBO CLASE + REPOSICIONES",
             grados
         ]
         .iloc[0]
