@@ -1,0 +1,18 @@
+# Tema fijo en modo claro (no sigue el modo oscuro del navegador ni del sistema)
+[theme]
+base = "light"
+primaryColor = "#1F9D74"
+backgroundColor = "#F4F8FB"
+secondaryBackgroundColor = "#E4EEF5"
+textColor = "#12324A"
+font = "sans serif"
+
+[theme.sidebar]
+backgroundColor = "#0B3C5D"
+secondaryBackgroundColor = "#124C73"
+textColor = "#EAF4F8"
+primaryColor = "#3DDC97"
+
+[client]
+# Oculta el menú de Streamlit (de ahí se cambia el tema), así nadie pasa a modo oscuro
+toolbarMode = "minimal"
