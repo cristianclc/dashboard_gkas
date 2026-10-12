@@ -14,6 +14,8 @@ from src.repo_components import (
 from src.db import cargar_horarios
 from src.sheets import cargar_reposiciones, recargar_reposiciones
 
+from src.carga import asegurar_datos
+
 from src.components import mostrar_tabla_interactiva, mostrar_tabla_reposiciones
 
 # ============================================================
@@ -21,6 +23,8 @@ from src.components import mostrar_tabla_interactiva, mostrar_tabla_reposiciones
 # ============================================================
 
 st.title("Reporte de reposiciones")
+
+asegurar_datos()
 
 st.caption(
     "Consulta y seguimiento de las sesiones de reposición."

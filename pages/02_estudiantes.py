@@ -3,8 +3,10 @@ import pandas as pd
 
 from src.dashboard import (crear_tabla_estudiantes_semana, crear_retirados_por_grado, crear_rangos_asistencia_k2k)
 from src.components import mostrar_tabla_interactiva
+from src.carga import asegurar_datos
 
 st.title("Detalle estudiantes")
+asegurar_datos()
 
 if "datos" not in st.session_state:
 

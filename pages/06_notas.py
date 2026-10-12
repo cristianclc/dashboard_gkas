@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 from src.components import mostrar_tabla_interactiva, crear_texto_notas
 from src.dashboard import crear_notas_por_aula
+from src.carga import asegurar_datos
 
 
 ACTIVIDADES_GK = [
@@ -45,6 +46,8 @@ PERIODOS = ["C1", "C2", "C3", "C4"]
 
 
 st.title("Seguimiento de Notas")
+
+asegurar_datos()
 
 if "datos" not in st.session_state:
 

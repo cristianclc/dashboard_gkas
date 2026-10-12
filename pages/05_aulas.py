@@ -4,8 +4,10 @@ from src.components import mostrar_tabla_interactiva, mostrar_reporte_alertas, o
 from src.dashboard import (crear_tabla_aprovechamiento,crear_reposiciones_por_grupo,
     crear_tabla_semanal, crear_rangos_aprovechamiento_academico, crear_rangos_aprovechamiento_estudiantes, crear_reporte_alertas)
 
+from src.carga import asegurar_datos
 
 st.title("Detalle de Aulas")
+asegurar_datos()
 
 if "datos" not in st.session_state:
 

@@ -3,9 +3,10 @@ import pandas as pd
 
 from src.components import mostrar_tabla_interactiva
 from src.dashboard import (crear_tabla_tipificacion, crear_tabla_razones_agrupadas, crear_horas_prioritarias, crear_grafica_razones_agrupadas, crear_grafica_motivos_desagregados)
-
+from src.carga import asegurar_datos
 
 st.title("Detalle de motivos")
+asegurar_datos()
 
 if "datos" not in st.session_state:
 
