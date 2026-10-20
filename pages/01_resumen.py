@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
 from pathlib import Path
-from src.carga import asegurar_datos
 
 from src.dashboard import (crear_tabla_civicos, crear_tabla_resultado, crear_tabla_civicos, crear_tabla_reposiciones, crear_asistencias_pendientes_gk, crear_asistencias_pendientes_as)
-from src.components import mostrar_tabla_interactiva
+from src.components import mostrar_tabla_interactiva, mostrar_texto_copiable
 
 from src.sheets import cargar_reposiciones
+from src.carga import asegurar_datos
 
 st.title("Detalle resumen - PPT")
 
@@ -209,3 +209,21 @@ else:
                                         }
                         ]
         )
+
+    #texto de asistencias pendientes ==================================================
+
+    # Las tablas de pendientes cuentan hasta la última semana completa
+    semana_actual = int(df["Semana Del Proyecto"].max()) - 1
+
+    total_gk = int(pendientes_gk["Total asistencias pendientes"].sum())
+    total_as = int(pendientes_as["Total asistencias pendientes"].sum())
+
+    texto_pendientes = (
+        f"Los reportes se encuentran actualizados a la semana {semana_actual}:\n\n"
+        "- Aula a Aula 01:\n"
+        f"GK: {total_gk:,}".replace(",", ".") + " asistencias pendientes\n"
+        f"AS: {total_as:,}".replace(",", ".") + " asistencias pendientes"
+    )
+
+    st.subheader("Texto de asistencias pendientes")
+    mostrar_texto_copiable(texto_pendientes)

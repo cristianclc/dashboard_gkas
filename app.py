@@ -7,7 +7,6 @@ st.set_page_config(
     page_icon=":material/dashboard:",
     layout="wide",
 )
-aplicar_estilos()
 
 paginas = {
     "General": [
@@ -24,4 +23,6 @@ paginas = {
     ],
 }
 
-st.navigation(paginas).run()
+pagina = st.navigation(paginas)
+aplicar_estilos(pagina.title)
+pagina.run()

@@ -3,8 +3,9 @@ import re
 
 import pandas as pd
 import streamlit as st
-from src.components import mostrar_tabla_interactiva, crear_texto_notas
-from src.dashboard import crear_notas_por_aula
+from src.components import mostrar_tabla_interactiva, mostrar_reporte_alertas, obtener_aulas_filtradas, mostrar_texto_copiable, crear_texto_notas
+
+from src.dashboard import (crear_notas_por_aula)
 from src.carga import asegurar_datos
 
 
@@ -242,9 +243,4 @@ else:
         + crear_texto_notas(datos_as, ACTIVIDADES_AS, periodo)
     )
 
-    st.text_area(
-        "Notas 03_04",
-        value=texto_notas,
-        height=300,
-        label_visibility="collapsed"
-    )
+    mostrar_texto_copiable(texto_notas, altura=300)

@@ -16,7 +16,7 @@ from src.sheets import cargar_reposiciones, recargar_reposiciones
 
 from src.carga import asegurar_datos
 
-from src.components import mostrar_tabla_interactiva, mostrar_tabla_reposiciones
+from src.components import mostrar_tabla_interactiva, mostrar_tabla_reposiciones, mostrar_texto_copiable
 
 # ============================================================
 # CONFIGURACIÓN
@@ -360,11 +360,8 @@ reporte_migracion = generar_reporte_migracion(
 
 st.subheader("Reposiciones pendientes por migrar")
 
-st.text_area(
-    "Reporte para copiar y pegar",
-    value=reporte_migracion,
-    height=400
-)
+
+mostrar_texto_copiable(reporte_migracion, altura=400)
 
 # ============================================================
 # TABLA DE CANCELACIONES

@@ -252,7 +252,8 @@ def mostrar_tabla_interactiva(
     grupos_columnas=None,
     contar_ceros=False,
     altura_maxima=None,
-    columnas_porcentaje=None
+    columnas_porcentaje=None,
+    tamano_fuente=None
 ):
 
     """
@@ -719,6 +720,11 @@ def mostrar_tabla_interactiva(
 
                     columna = columnas[nombre_columna].copy()
 
+                    if "cellStyle" in grupo:
+
+                        # Estilo directo en la celda (no depende del CSS externo)
+                        columna["cellStyle"] = grupo["cellStyle"]
+
                     if "cellClass" in grupo:
 
                         columna["cellClass"] = grupo["cellClass"]
@@ -764,7 +770,14 @@ def mostrar_tabla_interactiva(
         enable_enterprise_modules=True,
         update_on=["filterChanged", "sortChanged", "columnVisible", "cellClicked"],
         data_return_mode="FILTERED_AND_SORTED",
-        custom_css=ESTILO_AGGRID
+        custom_css=(
+            {
+                **ESTILO_AGGRID,
+                ".ag-cell": {"font-size": f"{tamano_fuente}px !important"},
+                ".ag-header-cell-text": {"font-size": f"{tamano_fuente + 1}px !important"},
+                ".ag-header-group-text": {"font-size": f"{tamano_fuente + 1}px !important"},
+            } if tamano_fuente else ESTILO_AGGRID
+        )
     )
 
     return respuesta
@@ -1721,6 +1734,18 @@ def mostrar_tabla_reposiciones(
 
     return respuesta
 
+#TEXTO PARA COPIAR Y PEGAR
+
+def mostrar_texto_copiable(texto, altura=None):
+    """Texto de solo lectura con botón de copiar (icono en la esquina)."""
+    st.code(
+        texto,
+        language=None,
+        wrap_lines=True,
+        height=altura if altura else "content",
+    )
+
+
 #TEXTO NOTAS
 
 def crear_texto_notas(tabla, actividades, periodo):
@@ -1752,7 +1777,11 @@ def crear_texto_notas(tabla, actividades, periodo):
         # Hacia abajo: solo dice 100% si no falta ninguna aula
         porcentaje = math.floor((len(tabla) - sin_nota) / len(tabla) * 100)
 
-        linea = f"{nombre} ({porcentaje}%)"
+        if sin_nota == 0:
+            linea = f"{nombre} ({porcentaje}%)"
+        else:
+            palabra = "Aula pendiente" if sin_nota == 1 else "Aulas pendientes"
+            linea = f"{nombre} ({porcentaje}% - {sin_nota} {palabra})"
 
         if 0 < sin_nota <= 10:
             tutores = (
