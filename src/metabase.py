@@ -94,9 +94,13 @@ def _descargar_xlsx(
     except Exception as exc:
         if isinstance(exc, MetabaseError):
             raise
+        resp = locals().get("response")
+        contenido = resp.content if resp is not None else b""
         raise MetabaseError(
-            f"La respuesta de la pregunta {card_id} no pudo leerse como Excel. "
-            "Comprueba el formato de exportación y los parámetros."
+            f"La respuesta de la pregunta {card_id} no pudo leerse como Excel "
+            f"({type(exc).__name__}: {exc}). "
+            f"Tamaño: {len(contenido)} bytes. "
+            f"Inicio de la respuesta: {contenido[:300]!r}"
         ) from exc
 
 
